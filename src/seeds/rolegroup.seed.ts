@@ -1,8 +1,11 @@
+// src/seeds/rolegroup.seed.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 import { Logger } from '@nestjs/common';
-import { RoleGroup } from '../roles/rolegroup.schema';
 import { Model } from 'mongoose';
+import { getModelToken } from '@nestjs/mongoose';
+import { RoleGroup } from '../roles/rolegroup.schema';
+import { Permission } from '../permissions/permission.schema';
 
 const roleGroups = [
     {
@@ -26,8 +29,9 @@ const roleGroups = [
 async function bootstrap() {
     const app = await NestFactory.createApplicationContext(AppModule);
 
-    const roleGroupModel = app.get<Model<RoleGroup>>('RoleGroupModel');
-    const permissionModel = app.get<Model<any>>('PermissionModel');
+    // 🔥 FIX: Use getModelToken instead of string injection
+    const roleGroupModel = app.get<Model<RoleGroup>>(getModelToken(RoleGroup.name));
+    const permissionModel = app.get<Model<Permission>>(getModelToken(Permission.name));
 
     for (const role of roleGroups) {
         const exists = await roleGroupModel.findOne({ name: role.name });
@@ -40,13 +44,17 @@ async function bootstrap() {
             name: { $in: role.permissions },
         });
 
+        Logger.log(`📋 Found ${perms.length} permissions for ${role.name}:`, perms.map(p => p.name));
+
         const created = await roleGroupModel.create({
             name: role.name,
             permissions: perms.map((p) => p._id),
         });
 
-        Logger.log(`✅ Created RoleGroup: ${created.name}`);
+        Logger.log(`✅ Created RoleGroup: ${created.name} with ${perms.length} permissions`);
     }
 
     await app.close();
 }
+
+bootstrap().catch(console.error);

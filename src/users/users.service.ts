@@ -48,4 +48,39 @@ export class UsersService {
         return this.userModel.find().populate('roleGroup', 'name');
     }
 
+    async findByIdWithRole(userId: string) {
+        return await this.userModel
+            .findById(userId)
+            .populate({
+                path: 'roleGroup',
+                populate: {
+                    path: 'permissions',
+                    model: 'Permission'
+                }
+            })
+            .exec();
+    }
+
+    // Alternative method if the above doesn't work with your schema
+    async findByIdWithRoleAlternative(userId: string) {
+        const user = await this.userModel.findById(userId).populate('roleGroup').exec();
+
+        if (!user || !user.roleGroup) {
+            return user;
+        }
+
+        // If permissions are stored as ObjectIds in roleGroup, populate them
+        const populatedUser = await this.userModel
+            .findById(userId)
+            .populate({
+                path: 'roleGroup',
+                populate: {
+                    path: 'permissions'
+                }
+            })
+            .exec();
+
+        return populatedUser;
+    }
 }
+

@@ -4,16 +4,13 @@ import { Permission } from '../permissions/permission.schema';
 
 export type RoleGroupDocument = RoleGroup & Document;
 
-@Schema({ timestamps: true })
+// role-group.schema.ts
+@Schema()
 export class RoleGroup {
-    @Prop({ required: true, unique: true })
+    @Prop({ required: true })
     name: string;
 
-    @Prop({
-        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Permission' }],
-        default: [],
-    })
+    @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Permission' }])
     permissions: Permission[];
 }
-
 export const RoleGroupSchema = SchemaFactory.createForClass(RoleGroup);

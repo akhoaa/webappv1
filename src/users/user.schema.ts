@@ -25,7 +25,6 @@ export class User {
 
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'RoleGroup' })
     roleGroup: RoleGroup;
-
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
